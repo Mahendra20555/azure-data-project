@@ -64,6 +64,10 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
+          if [ -z "${{ github.event.inputs.command }}" ]; then
+            echo "Command input is empty. Please provide a command to run inside the container."
+            exit 1
+          fi
           docker run --rm \
             -e AWS_REGION \
             -e AWS_ACCESS_KEY_ID \
@@ -72,6 +76,7 @@ jobs:
             -e BRONZE_S3_PREFIX \
             -e DELTA_S3_BUCKET \
             -e DELTA_S3_PREFIX \
-            -v ${{ github.workspace }}:/workspace \
+            -v "${{ github.workspace }}:/workspace" \
             -w /workspace \
-            ${{ github.event.inputs.ecr_image }} bash -lc "${{ github.event.inputs.command }}"
+            "${{ github.event.inputs.ecr_image }}" \
+            bash -lc "${{ github.event.inputs.command }}"
