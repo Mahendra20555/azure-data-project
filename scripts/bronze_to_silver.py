@@ -34,9 +34,24 @@ def upload_s3_file(s3_client, local_path: Path, bucket_name: str, key: str):
     s3_client.upload_file(str(local_path), bucket_name, key)
 
 
+def normalize_object_columns(df: pd.DataFrame) -> pd.DataFrame:
+    for col in df.select_dtypes(include=['object']).columns:
+        mask = df[col].isna()
+        df[col] = df[col].apply(
+            lambda value: value.decode('utf-8', errors='ignore')
+            if isinstance(value, (bytes, bytearray))
+            else str(value)
+            if not pd.isna(value)
+            else None
+        )
+        df.loc[mask, col] = None
+    return df
+
+
 def convert_csv_to_parquet(csv_path: Path, parquet_path: Path):
     print(f'Converting {csv_path} -> {parquet_path}')
-    df = pd.read_csv(csv_path)
+    df = pd.read_csv(csv_path, low_memory=False)
+    df = normalize_object_columns(df)
     df.to_parquet(parquet_path, index=False)
     return parquet_path
 
