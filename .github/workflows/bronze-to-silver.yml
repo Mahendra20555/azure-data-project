@@ -1,4 +1,4 @@
-name: Transform AWS S3 bronze CSV data to silver Parquet
+name: Convert AWS S3 bronze CSV data to Delta Lake
 
 on:
   workflow_dispatch:
@@ -8,19 +8,19 @@ on:
         required: true
         default: 'eu-north-1'
       bronze_s3_bucket:
-        description: 'S3 bucket name where bronze data is stored'
+        description: 'S3 bucket name where bronze CSV data is stored'
         required: true
         default: 'companieshouse-uk'
       bronze_s3_prefix:
-        description: 'S3 prefix for bronze data files'
+        description: 'S3 prefix for bronze CSV data'
         required: false
         default: 'bronze/'
-      silver_s3_bucket:
-        description: 'S3 bucket name where silver Parquet data should be written'
+      delta_s3_bucket:
+        description: 'S3 bucket name where Delta table should be written'
         required: true
         default: 'companieshouse-uk'
-      silver_s3_prefix:
-        description: 'S3 prefix for silver data files'
+      delta_s3_prefix:
+        description: 'S3 prefix for Delta table storage'
         required: false
         default: 'silver/'
 
@@ -40,16 +40,16 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install boto3 pandas pyarrow
+          pip install boto3 pandas pyarrow deltalake
 
-      - name: Run bronze-to-silver conversion
+      - name: Run bronze-to-delta conversion
         env:
           AWS_REGION: ${{ github.event.inputs.aws_region }}
           BRONZE_S3_BUCKET: ${{ github.event.inputs.bronze_s3_bucket }}
           BRONZE_S3_PREFIX: ${{ github.event.inputs.bronze_s3_prefix }}
-          SILVER_S3_BUCKET: ${{ github.event.inputs.silver_s3_bucket }}
-          SILVER_S3_PREFIX: ${{ github.event.inputs.silver_s3_prefix }}
+          DELTA_S3_BUCKET: ${{ github.event.inputs.delta_s3_bucket }}
+          DELTA_S3_PREFIX: ${{ github.event.inputs.delta_s3_prefix }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          python scripts/bronze_to_silver.py
+          python scripts/bronze_to_delta.py
