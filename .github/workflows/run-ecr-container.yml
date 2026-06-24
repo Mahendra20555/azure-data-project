@@ -35,6 +35,8 @@ on:
 jobs:
   run-container:
     runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: 'true'
 
     steps:
       - name: Checkout repo
@@ -43,7 +45,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          aws-region: ${{ github.event.inputs.aws_region }}
+          aws-region: ${{ github.event.inputs.aws_region || 'eu-north-1' }}
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
@@ -64,10 +66,18 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          if [ -z "${{ github.event.inputs.command }}" ]; then
-            echo "Command input is empty. Please provide a command to run inside the container."
+          ecr_image="${{ github.event.inputs.ecr_image }}"
+          command="${{ github.event.inputs.command }}"
+          if [ -z "$ecr_image" ]; then
+            echo "ECR image input is empty. Please provide a valid ECR image URL."
             exit 1
           fi
+          if [ -z "$command" ]; then
+            echo "Command input is empty. Defaulting to 'python scripts/bronze_to_silver.py'."
+            command='python scripts/bronze_to_silver.py'
+          fi
+          echo "Running container image: $ecr_image"
+          echo "Using command: $command"
           docker run --rm \
             -e AWS_REGION \
             -e AWS_ACCESS_KEY_ID \
@@ -78,5 +88,5 @@ jobs:
             -e DELTA_S3_PREFIX \
             -v "${{ github.workspace }}:/workspace" \
             -w /workspace \
-            "${{ github.event.inputs.ecr_image }}" \
-            bash -lc "${{ github.event.inputs.command }}"
+            "$ecr_image" \
+            sh -lc "$command"
