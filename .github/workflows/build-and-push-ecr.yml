@@ -27,6 +27,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: 'true'
+      # Fallback repository and image tag so push/pull_request events without inputs work
+      ECR_REPOSITORY: ${{ github.event.inputs.ecr_repository || '207448370045.dkr.ecr.eu-north-1.amazonaws.com/companieshouse' }}
+      IMAGE_TAG: ${{ github.event.inputs.image_tag || github.sha }}
 
     steps:
       - name: Checkout repo
@@ -44,8 +47,15 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ${{ github.event.inputs.ecr_repository }}:${{ github.event.inputs.image_tag }} .
+          echo "Building image: $ECR_REPOSITORY:$IMAGE_TAG"
+          docker build -t "$ECR_REPOSITORY:$IMAGE_TAG" .
 
-      - name: Push image to ECR
+      - name: Push image to ECR (only on push to main)
+        if: github.event_name == 'push'
         run: |
-          docker push ${{ github.event.inputs.ecr_repository }}:${{ github.event.inputs.image_tag }}
+          echo "Pushing image: $ECR_REPOSITORY:$IMAGE_TAG"
+          docker push "$ECR_REPOSITORY:$IMAGE_TAG"
+      - name: Skip push for PRs
+        if: github.event_name != 'push'
+        run: |
+          echo "Not a push event ("${{ github.event_name }}"). Skipping push to ECR."

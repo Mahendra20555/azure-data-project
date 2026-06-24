@@ -1,6 +1,8 @@
 name: Convert AWS S3 bronze CSV data to Delta Lake
 
 on:
+  schedule:
+    - cron: '0 4 1 * *' # monthly at 04:00 UTC on the first day of the month
   workflow_dispatch:
     inputs:
       aws_region:
