@@ -2,28 +2,46 @@
 
 ## AWS S3 Bronze Ingestion
 
-This repository contains a GitHub Actions workflow to ingest data from an AWS S3 source bucket into an AWS S3 bronze location.
+This repository contains GitHub Actions workflows to:
 
-### Components
+1. ingest Companies House ZIP data from a URL into an AWS S3 bronze location
+2. convert bronze CSV data into silver Parquet format in AWS S3
 
-- Workflow: `.github/workflows/ingest-s3-to-s3.yml`
-- Ingestion script: `scripts/ingest_s3_to_s3.py`
+### Workflows
+
+- Bronze ingestion workflow: `.github/workflows/ingest-s3-to-s3.yml`
+- Bronze-to-silver transformation workflow: `.github/workflows/bronze-to-silver.yml`
+
+### Scripts
+
+- `scripts/ingest_url_to_s3.py` — download ZIP from URL, extract files, and upload CSV or Parquet to bronze
+- `scripts/ingest_s3_to_s3.py` — copy data between S3 prefixes
+- `scripts/bronze_to_silver.py` — convert bronze CSV files to Parquet and write to silver
 
 ### Required GitHub secrets
 
 - `AWS_ACCESS_KEY_ID`
 - `AWS_SECRET_ACCESS_KEY`
 
-### Workflow inputs
+### Bronze ingestion workflow inputs
 
 - `aws_region`: AWS region for the S3 buckets (default: `eu-north-1`)
-- `source_s3_bucket`: source bucket name (default: `companieshouse-uk`)
-- `source_s3_prefix`: source prefix/path to ingest
+- `download_url`: URL to download the Companies House ZIP data from
+- `output_format`: upload data as `csv` or `parquet`
 - `destination_s3_bucket`: destination bucket name for bronze data
 - `destination_s3_prefix`: destination prefix for bronze data (default: `bronze/`)
 
+### Bronze-to-silver workflow inputs
+
+- `aws_region`: AWS region for the S3 buckets (default: `eu-north-1`)
+- `bronze_s3_bucket`: S3 bucket name where bronze data is stored
+- `bronze_s3_prefix`: S3 prefix for bronze data files (default: `bronze/`)
+- `silver_s3_bucket`: S3 bucket name for silver Parquet data
+- `silver_s3_prefix`: S3 prefix for silver data files (default: `silver/`)
+
 ### Notes
 
-- The workflow copies objects from the source path to the destination bronze path using AWS S3.
-- The script now validates access to both source and destination buckets before copying.
+- `scripts/ingest_url_to_s3.py` can download and extract a Companies House ZIP and upload CSV or Parquet files to bronze.
+- `scripts/bronze_to_silver.py` converts bronze CSV files to Parquet and writes them to silver.
+- The workflows validate S3 bucket access before copying or uploading.
 - Keep AWS credentials secret and do not commit them to source control.
