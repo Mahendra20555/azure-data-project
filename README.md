@@ -54,9 +54,11 @@ Use the `run-ecr-container` workflow to execute container-based jobs from your E
 
 Inputs:
 - `aws_region`: AWS region for ECR and S3 access (default: `eu-north-1`)
-- `ecr_image`: ECR image URL (default: `207448370045.dkr.ecr.eu-north-1.amazonaws.com/companieshouse:latest`)
+- `ecr_image`: ECR image URL, including the exact tag (for example `207448370045.dkr.ecr.eu-north-1.amazonaws.com/companieshouse:<tag>`)
 - `command`: command to run inside the container (default: `python scripts/bronze_to_silver.py`)
 - `bronze_s3_bucket`: bucket with bronze data
 - `bronze_s3_prefix`: prefix for bronze data (default: `bronze/`)
 - `delta_s3_bucket`: bucket for Delta silver data
 - `delta_s3_prefix`: prefix for Delta silver data (default: `silver/`)
+
+Note: the workflow no longer assumes `:latest`. Provide a valid image tag from your ECR repository to avoid `manifest unknown` errors.
