@@ -1,6 +1,12 @@
 name: Build and push CompaniesHouse ECR image
 
 on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       aws_region:
