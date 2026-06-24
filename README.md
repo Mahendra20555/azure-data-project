@@ -12,6 +12,7 @@ This repository contains GitHub Actions workflows to:
 - Bronze ingestion workflow: `.github/workflows/ingest-s3-to-s3.yml`
 - Bronze-to-silver transformation workflow: `.github/workflows/bronze-to-silver.yml`
 - ECR container run workflow: `.github/workflows/run-ecr-container.yml`
+- Build and push ECR image workflow: `.github/workflows/build-and-push-ecr.yml`
 
 ### Scripts
 
@@ -45,6 +46,7 @@ This repository contains GitHub Actions workflows to:
 - `scripts/ingest_url_to_s3.py` can download and extract a Companies House ZIP and upload CSV or Parquet files to bronze.
 - `scripts/bronze_to_silver.py` converts bronze CSV files into a Delta Lake table and writes `_delta_log` metadata under silver.
 - `.github/workflows/run-ecr-container.yml` pulls an ECR image and runs a container command with AWS/S3 credentials.
+- `.github/workflows/build-and-push-ecr.yml` builds the Docker image from this repo and pushes it to the specified ECR repository.
 - The workflows validate S3 bucket access before copying or uploading.
 - Keep AWS credentials secret and do not commit them to source control.
 
@@ -61,4 +63,4 @@ Inputs:
 - `delta_s3_bucket`: bucket for Delta silver data
 - `delta_s3_prefix`: prefix for Delta silver data (default: `silver/`)
 
-Note: the workflow will use `:latest` by default. Make sure your ECR repository has the `companieshouse:latest` image pushed before running the workflow.
+Note: the workflow will use `:latest` by default. First run the build-and-push workflow to create and push `companieshouse:latest` into ECR.
