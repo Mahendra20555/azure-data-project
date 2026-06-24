@@ -8,9 +8,9 @@ on:
         required: true
         default: 'eu-north-1'
       ecr_image:
-        description: 'ECR image URL to run (include the exact tag, not latest unless available)'
+        description: 'ECR image URL to run (default uses latest tag)'
         required: true
-        default: ''
+        default: '207448370045.dkr.ecr.eu-north-1.amazonaws.com/companieshouse:latest'
       command:
         description: 'Command to run inside the container'
         required: true
